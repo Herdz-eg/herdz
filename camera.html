@@ -16,7 +16,7 @@
       .then((stream) => {
         videoElement.srcObject = stream;
 
-        // Подключение к WebSocket серверу
+        // Подключение к WebSocket серверу (обновленный адрес)
         const socket = new WebSocket("ws://localhost:8765");
 
         // Отправка видеоданных на сервер
