@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Web Camera Stream</title>
+  <title>Трансляция камеры</title>
 </head>
 <body>
   <h1>Трансляция камеры</h1>
@@ -16,16 +16,18 @@
       .then((stream) => {
         videoElement.srcObject = stream;
 
-        const socket = new WebSocket("wss://your-domain.com/stream");
+        // Подключение к WebSocket серверу
+        const socket = new WebSocket("ws://localhost:8765");
 
         // Отправка видеоданных на сервер
         const mediaRecorder = new MediaRecorder(stream);
         mediaRecorder.ondataavailable = (event) => {
           if (event.data.size > 0) {
+            // Отправка видеоданных в WebSocket
             socket.send(event.data);
           }
         };
-        mediaRecorder.start(100); // Отправка каждые 100 мс
+        mediaRecorder.start(100); // Отправка данных каждые 100 мс
       })
       .catch((err) => {
         console.error("Ошибка доступа к камере:", err);
