@@ -3,31 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Трансляция камеры</title>
+  <title>Камера</title>
 </head>
 <body>
-  <h1>Трансляция камеры</h1>
+  <h1>Трансляция с камеры</h1>
   <video id="video" autoplay muted></video>
   <script>
     const videoElement = document.getElementById("video");
 
-    // Запрос доступа к камере
+    // Захват видео с камеры
     navigator.mediaDevices.getUserMedia({ video: true })
       .then((stream) => {
         videoElement.srcObject = stream;
 
-        // Подключение к WebSocket серверу (обновленный адрес)
-        const socket = new WebSocket("ws://localhost:8765");
+        // Устанавливаем WebSocket соединение
+        const socket = new WebSocket("ws://localhost:8765/stream");
 
-        // Отправка видеоданных на сервер
-        const mediaRecorder = new MediaRecorder(stream);
+        // Создаем MediaRecorder для записи видео
+        const mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm" });
+
         mediaRecorder.ondataavailable = (event) => {
           if (event.data.size > 0) {
-            // Отправка видеоданных в WebSocket
-            socket.send(event.data);
+            socket.send(event.data); // Отправка данных на сервер
           }
         };
-        mediaRecorder.start(100); // Отправка данных каждые 100 мс
+
+        mediaRecorder.start(100); // Отправляем данные каждые 100 мс
       })
       .catch((err) => {
         console.error("Ошибка доступа к камере:", err);
